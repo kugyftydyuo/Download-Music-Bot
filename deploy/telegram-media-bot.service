@@ -1,0 +1,36 @@
+[Unit]
+Description=Telegram media downloader bot
+Wants=network-online.target
+After=network-online.target
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User=mediabot
+Group=mediabot
+WorkingDirectory=/opt/telegram-media-bot
+ExecStart=/usr/bin/node src/index.js
+Environment=NODE_ENV=production
+Environment="NODE_OPTIONS=--max-old-space-size=192"
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=25
+KillMode=control-group
+UMask=0077
+
+# Стартовые значения для VPS с 2 ГБ RAM. Подберите под свой сервер.
+MemoryHigh=640M
+MemoryMax=768M
+CPUQuota=150%
+TasksMax=96
+LimitNOFILE=4096
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/telegram-media-bot/data
+RestrictSUIDSGID=true
+
+[Install]
+WantedBy=multi-user.target

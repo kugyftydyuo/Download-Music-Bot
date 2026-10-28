@@ -1,18 +1,24 @@
 {
-  "name": "musicbot",
+  "name": "telegram-media-bot",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Telegram media bot with subscription checks and pluggable platforms",
+  "main": "src/index.js",
   "scripts": {
-    "dev": "nodemon index.js"
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "test": "node --test",
+    "check": "node scripts/check.js",
+    "doctor": "node scripts/doctor.js",
+    "smoke": "node scripts/smoke.js",
+    "setup:telegram": "node scripts/telegram-setup.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "engines": { "node": ">=24.0.0" },
   "dependencies": {
     "dotenv": "^17.4.2",
-    "node-telegram-bot-api": "^0.67.0",
-    "nodemon": "^3.1.14"
+    "node-telegram-bot-api": "2.1.0"
   },
   "type": "module"
 }
