@@ -10,3 +10,7 @@ work/
 data/
 coverage/
 *.log
+
+# Файлы авторизованных сессий не должны попадать в Git.
+secrets/
+*cookies*.txt

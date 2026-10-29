@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { realpath, stat } from 'node:fs/promises';
+import { realpath, stat, copyFile, chmod } from 'node:fs/promises';
 import { AppError, throwIfAborted } from '../../core/errors.js';
 import { runProcess } from '../../infrastructure/process-runner.js';
 import { selectVideoFormat } from './formats.js';
@@ -11,6 +11,7 @@ function classify(error) {
   const detail = error.diagnostic ?? '';
   if (/file is larger than|max.filesize|larger than.*size/i.test(detail)) return new AppError('TOO_LARGE');
   if (/requested format.*not available/i.test(detail)) return new AppError('FORMAT_UNAVAILABLE');
+  if (/sign in to confirm (?:you[’']?re|you are) not a bot/i.test(detail)) return new AppError('YOUTUBE_AUTH_REQUIRED');
   if (/private video|video unavailable|has been removed|not available in your country|sign in|age.restrict|members.only/i.test(detail)) {
     return new AppError('MEDIA_UNAVAILABLE');
   }
@@ -30,7 +31,7 @@ export class YoutubeProvider {
     // Отбрасываем playlist, redirect, timestamp и прочие параметры пользователя.
     return `https://www.youtube.com/watch?v=${id}`;
   }
-  #baseArgs() {
+  #baseArgs(cookiesFile) {
     const args = [
       '--ignore-config', '--no-plugin-dirs', '--no-cache-dir', '--no-playlist', '--no-progress', '--no-warnings', '--no-colors',
       '--socket-timeout', '20', '--retries', '2', '--extractor-retries', '2', '--fragment-retries', '2', '--concurrent-fragments', '1',
@@ -39,6 +40,7 @@ export class YoutubeProvider {
       '--js-runtimes', `node:${process.execPath}`,
     ];
     if (path.isAbsolute(this.config.ffmpegPath)) args.push('--ffmpeg-location', this.config.ffmpegPath);
+    if (cookiesFile) args.push('--cookies', cookiesFile);
     return args;
   }
   async #invoke(args, signal) {
@@ -48,7 +50,18 @@ export class YoutubeProvider {
   }
   async download({ url, kind, directory, signal }) {
     if (!['video', 'audio'].includes(kind)) throw new AppError('PROCESS_FAILED');
-    const meta = await this.#invoke([...this.#baseArgs(), '--dump-single-json', '--skip-download', '--', url], signal);
+    let cookiesFile;
+    if (this.config.youtubeCookiesFile) {
+      cookiesFile = path.join(directory, 'youtube-cookies.txt');
+      try {
+        // yt-dlp сохраняет cookie jar при выходе. Копия исключает гонки между
+        // задачами и запись в read-only secrets при ProtectSystem=strict.
+        await copyFile(this.config.youtubeCookiesFile, cookiesFile);
+        await chmod(cookiesFile, 0o600);
+      } catch { throw new AppError('COOKIES_UNAVAILABLE'); }
+    }
+    const baseArgs = this.#baseArgs(cookiesFile);
+    const meta = await this.#invoke([...baseArgs, '--dump-single-json', '--skip-download', '--', url], signal);
     let info;
     try { info = JSON.parse(meta.stdout); } catch { throw new AppError('DOWNLOAD_FAILED'); }
     if (info.is_live || ['is_live', 'is_upcoming', 'post_live'].includes(info.live_status)) throw new AppError('LIVE_UNSUPPORTED');
@@ -61,7 +74,7 @@ export class YoutubeProvider {
       : 'bestaudio/best';
     const maxSourceBytes = Math.min(this.config.maxUploadBytes * 2, Math.floor(this.config.maxJobDiskBytes / 2));
     const result = await this.#invoke([
-      ...this.#baseArgs(), '--no-simulate', '--no-mtime', '--restrict-filenames', '--max-filesize', String(maxSourceBytes),
+      ...baseArgs, '--no-simulate', '--no-mtime', '--restrict-filenames', '--max-filesize', String(maxSourceBytes),
       '--format', format, '--merge-output-format', 'mp4', '--paths', directory,
       '--output', 'source.%(ext)s', '--print', 'after_move:filepath', '--', url,
     ], signal);
