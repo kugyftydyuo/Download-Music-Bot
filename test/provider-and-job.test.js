@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdir, mkdtemp, writeFile, rm } from 'node:fs/promises';
+import { mkdir, mkdtemp, writeFile, rm, readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { loadConfig } from '../src/config/index.js';
 import { AppError } from '../src/core/errors.js';
@@ -104,4 +104,62 @@ test('unsubscribed users waiting in queue never start downloading', async () => 
   const fixture = jobFixture({ subscriptions: { async assertAccess() { throw new AppError('UNSUBSCRIBED'); } } });
   await assert.rejects(fixture.service.execute({ userId: 1, platform: fixture.platform }, new AbortController().signal), { code: 'UNSUBSCRIBED' });
   assert.deepEqual(fixture.events, []);
+});
+
+
+
+test('cookies are isolated per job and passed to metadata and download', async (t) => {
+  await mkdir('work', { recursive: true });
+  const root = await mkdtemp(path.resolve('work', 'cookies-test-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const original = path.join(root, 'original.txt');
+  const content = '# Netscape HTTP Cookie File\n';
+  await writeFile(original, content);
+  const copies = new Set();
+  const provider = new YoutubeProvider({ ...config, youtubeCookiesFile: original }, async (_cmd, args) => {
+    const cookie = args[args.indexOf('--cookies') + 1];
+    assert.notEqual(cookie, original);
+    copies.add(cookie);
+    if (process.platform !== 'win32') assert.equal((await stat(cookie)).mode & 0o777, 0o600);
+    await writeFile(cookie, 'updated test session');
+    if (args.includes('--dump-single-json')) return { stdout: JSON.stringify({ duration: 10, title: 'test' }) };
+    const source = path.join(args[args.indexOf('--paths') + 1], 'source.m4a');
+    await writeFile(source, 'test audio');
+    return { stdout: source };
+  });
+  await Promise.all(['a', 'b'].map(async (name) => {
+    const directory = path.join(root, name);
+    await mkdir(directory);
+    await provider.download({ url: 'https://www.youtube.com/watch?v=BaW_jenozKc', kind: 'audio', directory });
+  }));
+  assert.equal(copies.size, 2);
+  assert.equal(await readFile(original, 'utf8'), content);
+});
+
+test('missing cookies fail safely before starting yt-dlp', async () => {
+  const provider = new YoutubeProvider({ ...config, youtubeCookiesFile: path.resolve('work/missing-cookies-file.txt') }, async () => assert.fail('yt-dlp should not start'));
+  await assert.rejects(provider.download({ url: 'x', kind: 'audio', directory: path.resolve('work') }), { code: 'COOKIES_UNAVAILABLE' });
+});
+
+test('YouTube bot check is distinct from private and age-restricted media', async () => {
+  for (const [diagnostic, code] of [
+    ["Sign in to confirm you're not a bot", 'YOUTUBE_AUTH_REQUIRED'],
+    ['Sign in to confirm you’re not a bot', 'YOUTUBE_AUTH_REQUIRED'],
+    ['Sign in to confirm your age', 'MEDIA_UNAVAILABLE'],
+    ['Private video', 'MEDIA_UNAVAILABLE'],
+  ]) {
+    const provider = new YoutubeProvider(config, async (_cmd, args) => {
+      assert(!args.includes('--cookies'));
+      const error = new AppError('PROCESS_FAILED');
+      error.diagnostic = diagnostic;
+      throw error;
+    });
+    await assert.rejects(provider.download({ url: 'x', kind: 'audio', directory: 'work' }), { code });
+  }
+});
+
+test('cookies config is optional and resolves relative paths', () => {
+  assert.equal(config.youtubeCookiesFile, undefined);
+  assert.equal(loadConfig({ YOUTUBE_COOKIES_FILE: '  ' }, { requireToken: false }).youtubeCookiesFile, undefined);
+  assert.equal(loadConfig({ YOUTUBE_COOKIES_FILE: './secrets/youtube-cookies.txt' }, { requireToken: false }).youtubeCookiesFile, path.resolve('secrets/youtube-cookies.txt'));
 });

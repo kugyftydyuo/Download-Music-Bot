@@ -10,3 +10,5 @@ work/
 data/
 coverage/
 *.log
+secrets/
+*cookies*.txt

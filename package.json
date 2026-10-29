@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "node --watch src/index.js",
-    "test": "node --test",
+    "test": "node --test \"test/*.test.js\"",
     "check": "node scripts/check.js",
     "doctor": "node scripts/doctor.js",
     "smoke": "node scripts/smoke.js",
@@ -15,7 +15,9 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "engines": { "node": ">=24.0.0" },
+  "engines": {
+    "node": ">=24.0.0"
+  },
   "dependencies": {
     "dotenv": "^17.4.2",
     "node-telegram-bot-api": "2.1.0"

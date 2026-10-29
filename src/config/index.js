@@ -54,6 +54,7 @@ export function loadConfig(env = process.env, { requireToken = true } = {}) {
     telegramTimeoutMs: number(env, 'TELEGRAM_TIMEOUT_SECONDS', 180, 40, 3600) * 1000,
     sessionTtlMs: number(env, 'SESSION_TTL_SECONDS', 86400, 60, 604800) * 1000,
     subscriptionCacheMs: number(env, 'SUBSCRIPTION_CACHE_SECONDS', 60, 0, 600) * 1000,
+    youtubeCookiesFile: env.YOUTUBE_COOKIES_FILE?.trim() ? path.resolve(env.YOUTUBE_COOKIES_FILE.trim()) : undefined,
     tempDir: path.resolve(env.TEMP_DIR || './data/tmp'),
     ytDlpPath: env.YT_DLP_PATH || 'yt-dlp',
     ffmpegPath: env.FFMPEG_PATH || 'ffmpeg',
