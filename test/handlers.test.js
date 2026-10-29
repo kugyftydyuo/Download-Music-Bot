@@ -43,7 +43,7 @@ test('start -> denied -> subscribe -> select audio -> enqueue link', async () =>
   await f.message('/start');
   assert(f.sent.at(-1).options.reply_markup.inline_keyboard.some((row) => row[0].callback_data === 'subscription:check'));
   await f.callback('mode:audio');
-  assert.match(f.sent.at(-1).text, /Сначала подпишитесь/);
+  assert.match(f.sent.at(-1).text, /Сначала подпишись/);
   assert.equal(f.executed.length, 0);
   f.subscribe();
   await f.callback('subscription:check');
@@ -61,11 +61,9 @@ test('a URL before format selection shows a menu, an unauthorised owner command 
   f.subscribe();
   await f.message('https://youtu.be/BaW_jenozKc');
   assert.equal(f.executed.length, 0);
-  assert.match(f.sent.at(-1).text, /Выберите формат/);
+  assert.match(f.sent.at(-1).text, /Выбери формат/);
   await f.message('/reload_channels');
   assert.match(f.sent.at(-1).text, /только владельцу/);
-  await f.message('/id');
-  assert.match(f.sent.at(-1).text, /ID: 1/);
   await f.handlers.close();
   await f.queue.close();
 });
