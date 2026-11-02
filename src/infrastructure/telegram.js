@@ -47,7 +47,7 @@ export class TelegramGateway {
         contentType: media.kind === 'video' ? 'video/mp4' : 'audio/mpeg',
       });
 
-      const options = { chat_id: chatId, caption: media.title.slice(0, 900), duration: Math.ceil(media.duration), reply_markup: keyboard };
+      const options = { chat_id: chatId, duration: Math.ceil(media.duration), reply_markup: keyboard };
 
       if (media.kind === 'video') {
         return this.api.sendVideo({ ...options, video: file, supports_streaming: true }, signal);
