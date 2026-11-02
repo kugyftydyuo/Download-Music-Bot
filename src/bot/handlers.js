@@ -48,16 +48,16 @@ export function registerHandlers({ bot, telegram, config, channels, subscription
     if (command === '/help') {
       return telegram.sendText(chatId,
         `/start — начать и выбрать формат\n/cancel — отменить задачу\n/status — посмотреть очередь\n/id — узнать свой ID\n\n` +
-        `YouTube: MP4 до ${config.maxVideoHeight}p или MP3 192 кбит/с. Файл до ${config.maxUploadBytes / 1_000_000} МБ, ролик до ${Math.floor(config.maxDuration / 60)} мин. ` +
+        `YouTube и TikTok: MP4 до ${config.maxVideoHeight}p или MP3 192 кбит/с. Файл до ${config.maxUploadBytes / 1_000_000} МБ, ролик до ${Math.floor(config.maxDuration / 60)} мин. ` +
         'Одна ссылка = одна задача. Скачивайте только материалы, на которые у вас есть права или разрешение.');
     }
     if (command === '/start') {
       sessions.delete(userId);
       if (!channels.snapshot.channels.length) {
-        await telegram.sendText(chatId, 'Привет! Помогу скачать видео или аудио из YouTube.');
+        await telegram.sendText(chatId, 'Привет! Помогу скачать видео или аудио из YouTube и TikTok.');
         return menu(chatId);
       }
-      return telegram.sendText(chatId, 'Привет! Помогу скачать видео или аудио из YouTube. Подпишитесь на каналы и нажмите кнопку проверки.', { reply_markup: keyboard() });
+      return telegram.sendText(chatId, 'Привет! Помогу скачать видео или аудио из YouTube и TikTok. Подпишитесь на каналы и нажмите кнопку проверки.', { reply_markup: keyboard() });
     }
     if (text.startsWith('/')) return telegram.sendText(chatId, 'Неизвестная команда. Список команд: /help');
     const kind = sessions.get(userId);
@@ -106,7 +106,7 @@ export function registerHandlers({ bot, telegram, config, channels, subscription
       await subscriptions.assertAccess(userId);
       const kind = query.data.slice(5);
       sessions.set(userId, kind);
-      return telegram.sendText(chatId, `Выбрано: ${kind === 'video' ? 'видео MP4' : 'аудио MP3'}. Отправьте одну ссылку на ролик YouTube.`);
+      return telegram.sendText(chatId, `Выбрано: ${kind === 'video' ? 'видео MP4' : 'аудио MP3'}. Отправьте одну ссылку на ролик YouTube или TikTok.`);
     }
     return telegram.sendText(chatId, 'Кнопка устарела. Начните заново: /start');
   }

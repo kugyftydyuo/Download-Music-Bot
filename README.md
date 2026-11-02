@@ -1,6 +1,6 @@
-# Telegram-бот для скачивания видео и аудио
+# Telegram-бот для скачивания видео и аудио из YouTube и TikTok
 
-Готовый проект на **Node.js 24+** и **node-telegram-bot-api 2.1.0**. Пользователь подписывается на каналы, выбирает MP4 или MP3, отправляет ссылку и получает файл. Скачивание выполняет `yt-dlp`, обработку — FFmpeg. Работает в личных сообщениях с ботом, через long polling.
+Готовый проект на **Node.js 24+** и **node-telegram-bot-api 2.1.0**. Пользователь подписывается на каналы, выбирает MP4 или MP3, отправляет ссылку YouTube или TikTok и получает файл. Скачивание выполняет `yt-dlp`, обработку — FFmpeg. Работает в личных сообщениях с ботом, через long polling.
 
 На старте установлены ограничения: **49 МБ на готовый файл, 20 минут на ролик, видео до 720p, MP3 192 кбит/с, одна задача одновременно и 20 мест в очереди**. Видео подбирается в H.264/AAC и переупаковывается в MP4; аудио преобразуется в MP3. Разрешение видео может автоматически снизиться, чтобы файл поместился. Массовое перекодирование видео на слабом сервере не выполняется.
 
@@ -11,7 +11,7 @@
 | Компонент | Назначение | Windows 11 | Linux |
 | --- | --- | --- | --- |
 | Node.js 24 LTS или новее | Сам бот и JavaScript runtime для YouTube | Установщик с [nodejs.org](https://nodejs.org/en/download) | Node.js 24, путь для systemd обычно `/usr/bin/node` |
-| yt-dlp, актуальная версия | Получение метаданных и медиа | Официальный `yt-dlp.exe` | Python virtualenv + `yt-dlp[default]` |
+| yt-dlp, актуальная версия | Получение метаданных и медиа | Официальный `yt-dlp.exe` | Python virtualenv + `yt-dlp[default,curl-cffi]` |
 | FFmpeg + ffprobe | MP4, MP3 и проверка результата | Windows-сборка FFmpeg с обоими exe | Пакет `ffmpeg` |
 
 На Windows Python отдельно **не нужен**, если использовать официальный `yt-dlp.exe`. На Linux потребуется Python 3.10+ и `python3-venv`. Redis, база данных, Docker, Nginx, домен и входящий HTTPS-порт для этого варианта не нужны. Серверу нужен исходящий доступ к Telegram, YouTube и его CDN.
@@ -139,7 +139,7 @@ sudo chown -R mediabot:mediabot /opt/telegram-media-bot
 cd /opt/telegram-media-bot
 sudo -u mediabot npm ci --omit=dev
 sudo -u mediabot python3 -m venv .venv
-sudo -u mediabot .venv/bin/python -m pip install --upgrade 'yt-dlp[default]'
+sudo -u mediabot .venv/bin/python -m pip install --upgrade 'yt-dlp[default,curl-cffi]'
 sudo -u mediabot cp .env.example .env
 sudo -u mediabot cp config/channels.example.json config/channels.json
 sudo -u mediabot mkdir -p data/tmp
@@ -155,7 +155,7 @@ FFPROBE_PATH=/usr/bin/ffprobe
 TEMP_DIR=/opt/telegram-media-bot/data/tmp
 ```
 
-Пакет `yt-dlp[default]` включает необходимые компоненты EJS. Бот явно разрешает Node.js как JavaScript runtime для YouTube. Не устанавливайте старый системный yt-dlp вместо актуального пакета в virtualenv.
+Пакет `yt-dlp[default,curl-cffi]` включает необходимые компоненты EJS. Бот явно разрешает Node.js как JavaScript runtime для YouTube. Не устанавливайте старый системный yt-dlp вместо актуального пакета в virtualenv.
 
 Проверьте запуск от того же пользователя, под которым будет работать служба:
 
@@ -369,7 +369,7 @@ yt-dlp --ignore-config --no-js-runtimes --js-runtimes node --no-playlist --simul
 ```bash
 sudo systemctl stop telegram-media-bot
 cd /opt/telegram-media-bot
-sudo -u mediabot .venv/bin/python -m pip install --upgrade 'yt-dlp[default]'
+sudo -u mediabot .venv/bin/python -m pip install --upgrade 'yt-dlp[default,curl-cffi]'
 sudo -u mediabot npm run doctor
 sudo -u mediabot npm run smoke
 sudo systemctl start telegram-media-bot
@@ -432,3 +432,24 @@ sudo systemctl start telegram-media-bot
 ```
 
 Эти команды предполагают, что папка сервера — Git-клон нужной ветки и принадлежит `mediabot`. Если проект был установлен из ZIP, скачайте свежий архив ветки и замените исходники, сохранив свои `.env`, `config/channels.json`, `secrets/`, `.venv/` и `data/`. После обновления проверьте видео и MP3 через бота.
+
+
+## 12. TikTok
+
+В боте поддерживаются публичные видеоролики TikTok: `https://www.tiktok.com/@user/video/ID`, короткие ссылки `vm.tiktok.com`, `vt.tiktok.com` и `www.tiktok.com/t/...`. Пользователь выбирает MP4 или MP3 и отправляет ссылку; платформа определяется автоматически. Профили, прямые эфиры и фотоальбомы не поддерживаются.
+
+Обязательна поддержка browser impersonation в yt-dlp. На Linux обновите именно virtualenv службы:
+
+```bash
+cd /opt/telegram-media-bot
+sudo -u mediabot .venv/bin/python -m pip install --upgrade 'yt-dlp[default,curl-cffi]'
+sudo -u mediabot .venv/bin/yt-dlp --list-impersonate-targets
+```
+
+В списке должны быть доступные браузеры. TikTok-extractor сам запрашивает impersonation; принудительно выбирать браузер в боте не нужно. Установка curl-cffi не требует запуска PO-провайдера. Cookies YouTube не передаются TikTok.
+
+На Windows проверьте `yt-dlp.exe --list-impersonate-targets`. Если ваша сборка не предоставляет доступных целей, можно установить Python 3.10+ и использовать отдельный virtualenv с тем же pip-пакетом `yt-dlp[default,curl-cffi]`; в `.env` укажите путь к `.venv/Scripts/yt-dlp.exe`.
+
+Для видео выбирается готовый MP4 с H.264/AAC в пределах бюджета размера; тяжёлого перекодирования HEVC нет. Для вертикальных роликов MAX_VIDEO_HEIGHT ограничивает короткую сторону (например, 720×1280), для горизонтальных — высоту. Если есть только несовместимые форматы, бот сообщает об этом. Для MP3 скачивается аудиодорожка либо исходное видео, затем общий FFmpeg извлекает звук. Лимиты длительности, размера, диска, очередь, подписки и отмена общие для обеих платформ.
+
+После обновления исходников и зависимости перезапустите службу. Проверьте TikTok через бота в обоих режимах и с короткой ссылкой. Нельзя гарантировать отсутствие будущих ограничений IP со стороны TikTok; код `TIKTOK_UNAVAILABLE` означает отказ платформы или проблему доступа. Автотесты используют подменённый загрузчик; живое скачивание трёх роликов проверено пользователем отдельно на своём сервере, доставка обновлённым ботом требует проверки после установки.
