@@ -59,7 +59,7 @@ export function registerHandlers({ bot, telegram, config, channels, subscription
     if (command === '/help') {
       return telegram.sendText(chatId,
         `/start - Перезапуск бота <tg-emoji emoji-id=${emojis.reload}>👍</tg-emoji>\n/cancel — Отменить задачу <tg-emoji emoji-id=${emojis.stop}>👍</tg-emoji>\n/status — Посмотреть очередь <tg-emoji emoji-id=${emojis.wait}>👍</tg-emoji>\n/id — Узнать свой ID <tg-emoji emoji-id=${emojis.man}>👍</tg-emoji>\n\n` +
-        `<tg-emoji emoji-id=${emojis.exclamations}>👍</tg-emoji> Правила:\n\n<tg-emoji emoji-id=${emojis.YouTube}>👍</tg-emoji> YouTube:\n\n<tg-emoji emoji-id=${emojis.note}>👍</tg-emoji> MP4 до ${config.maxVideoHeight}p или MP3 192 кбит/с\n<tg-emoji emoji-id=${emojis.file}>👍</tg-emoji> Файл до ${config.maxUploadBytes / 1_000_000} МБ\n<tg-emoji emoji-id=${emojis.video}>👍</tg-emoji> Ролик до ${Math.floor(config.maxDuration / 60)} мин.\n` +
+        `<tg-emoji emoji-id=${emojis.exclamations}>👍</tg-emoji> Правила:\n\n<tg-emoji emoji-id=${emojis.TikTok}>👍</tg-emoji> TikTok:\n\n<tg-emoji emoji-id=${emojis.note}>👍</tg-emoji> MP4 до ${config.maxVideoHeight}p или MP3 192 кбит/с\n<tg-emoji emoji-id=${emojis.file}>👍</tg-emoji> Файл до ${config.maxUploadBytes / 1_000_000} МБ\n<tg-emoji emoji-id=${emojis.video}>👍</tg-emoji> Ролик до ${Math.floor(config.maxDuration / 60)} мин.\n` +
         `<tg-emoji emoji-id=${emojis.link}>👍</tg-emoji> Одна ссылка = одна задача`, {parse_mode: 'HTML'});
     }
 
@@ -67,11 +67,11 @@ export function registerHandlers({ bot, telegram, config, channels, subscription
       sessions.delete(userId);
 
       if (!channels.snapshot.channels.length) {
-        await telegram.sendText(chatId, `<tg-emoji emoji-id=${emojis.hello}>👍</tg-emoji> Добро пожаловать!\n\n<tg-emoji emoji-id=${emojis.download}>👍</tg-emoji>Я помогу тебе скачать видео или аудио из <tg-emoji emoji-id=${emojis.YouTube}>👍</tg-emoji>YouTube`, {parse_mode: 'HTML'});
+        await telegram.sendText(chatId, `<tg-emoji emoji-id=${emojis.hello}>👍</tg-emoji> Добро пожаловать!\n\n<tg-emoji emoji-id=${emojis.download}>👍</tg-emoji>Я помогу тебе скачать видео или аудио из <tg-emoji emoji-id=${emojis.TikTok}>👍</tg-emoji>TikTok`, {parse_mode: 'HTML'});
         return menu(chatId);
       }
 
-      return telegram.sendText(chatId, `<tg-emoji emoji-id=${emojis.hello}>👍</tg-emoji> Добро пожаловать!\n\n<tg-emoji emoji-id=${emojis.download}>👍</tg-emoji>Я помогу тебе скачать видео или аудио из <tg-emoji emoji-id=${emojis.YouTube}>👍</tg-emoji>YouTube\n\n<tg-emoji emoji-id=${emojis.tap}>👍</tg-emoji> Подпишись на каналы и нажми кнопку <tg-emoji emoji-id=${emojis.check}>👍</tg-emoji> Проверить.`, { reply_markup: keyboard(), parse_mode: 'HTML' });
+      return telegram.sendText(chatId, `<tg-emoji emoji-id=${emojis.hello}>👍</tg-emoji> Добро пожаловать!\n\n<tg-emoji emoji-id=${emojis.download}>👍</tg-emoji>Я помогу тебе скачать видео или аудио из <tg-emoji emoji-id=${emojis.TikTok}>👍</tg-emoji>TikTok\n\n<tg-emoji emoji-id=${emojis.tap}>👍</tg-emoji> Подпишись на каналы и нажми кнопку <tg-emoji emoji-id=${emojis.check}>👍</tg-emoji> Проверить.`, { reply_markup: keyboard(), parse_mode: 'HTML' });
     }
 
     if (text.startsWith('/')) return telegram.sendText(chatId, `<tg-emoji emoji-id=${emojis.question}>👍</tg-emoji>Неизвестная команда. Список команд: /help`, {parse_mode: 'HTML'});
@@ -134,7 +134,7 @@ export function registerHandlers({ bot, telegram, config, channels, subscription
 
       const video = `<tg-emoji emoji-id=${emojis.video}>👍</tg-emoji>`
       const audio = `<tg-emoji emoji-id=${emojis.audio}>👍</tg-emoji>`
-      return telegram.sendText(chatId, `Выбрано: ${kind === 'video' ? video + ' видео MP4' : audio + ' аудио MP3'}\n\n<tg-emoji emoji-id=${emojis.link}>👍</tg-emoji> Отправь одну ссылку на ролик <tg-emoji emoji-id=${emojis.YouTube}>👍</tg-emoji> YouTube.`, {parse_mode: 'HTML'});
+      return telegram.sendText(chatId, `Выбрано: ${kind === 'video' ? video + ' видео MP4' : audio + ' аудио MP3'}\n\n<tg-emoji emoji-id=${emojis.link}>👍</tg-emoji> Отправь одну ссылку на ролик <tg-emoji emoji-id=${emojis.TikTok}>👍</tg-emoji> TikTok.`, {parse_mode: 'HTML'});
     }
 
     if (query.data === "download_again") {

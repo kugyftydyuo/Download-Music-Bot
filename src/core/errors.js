@@ -10,8 +10,8 @@ export class AppError extends Error {
 }
 
 const messages = {
-  INVALID_URL:`<tg-emoji emoji-id=${emojis.link}>👍</tg-emoji> Отправь одну HTTPS-ссылку на ролик <tg-emoji emoji-id=${emojis.YouTube}>👍</tg-emoji> YouTube (watch, Shorts или youtu.be).`,
-  UNSUPPORTED_PLATFORM: `<tg-emoji emoji-id=${emojis.no_light}>👍</tg-emoji>Пока поддерживается только <tg-emoji emoji-id=${emojis.YouTube}>👍</tg-emoji> YouTube.`,
+  INVALID_URL:`<tg-emoji emoji-id=${emojis.link}>👍</tg-emoji> Отправь одну HTTPS-ссылку на ролик <tg-emoji emoji-id=${emojis.TikTok}>👍</tg-emoji> TikTok.`,
+  UNSUPPORTED_PLATFORM: `<tg-emoji emoji-id=${emojis.no_light}>👍</tg-emoji>Пока поддерживается только <tg-emoji emoji-id=${emojis.TikTok}>👍</tg-emoji> TikTok.`,
   UNSUBSCRIBED: `<tg-emoji emoji-id=${emojis.cross}>👍</tg-emoji> Сначала подпишись на все каналы и нажми <tg-emoji emoji-id=${emojis.check}>👍</tg-emoji> Проверить.`,
   SUBSCRIPTION_UNAVAILABLE: `<tg-emoji emoji-id=${emojis.stop}>👍</tg-emoji> Сейчас не удалось проверить подписку. Попробуй чуть позже.`,
   QUEUE_FULL: `<tg-emoji emoji-id=${emojis.no_man}>👍</tg-emoji> Очередь заполнена. Попробуй через несколько минут.`,
@@ -24,8 +24,10 @@ const messages = {
   YOUTUBE_AUTH_REQUIRED: `<tg-emoji emoji-id=${emojis.stop}>👍</tg-emoji> YouTube требует подтверждения доступа на сервере. Попробуй позже.`,
   COOKIES_UNAVAILABLE: `<tg-emoji emoji-id=${emojis.error}>👍</tg-emoji> Не удалось загрузить настройки авторизации YouTube.`,
   MEDIA_UNAVAILABLE: `<tg-emoji emoji-id=${emojis.cross_in_circle}>👍</tg-emoji> Видео недоступно: оно может быть удалено, приватным или иметь ограничения.`,
+  TIKTOK_UNAVAILABLE: `<tg-emoji emoji-id=${emojis.cross_in_circle}>👍</tg-emoji> TikTok временно не даёт доступ к ролику с сервера. Попробуй позже.`,
+  TIKTOK_UNSUPPORTED: `<tg-emoji emoji-id=${emojis.cross_in_circle}>👍</tg-emoji> Поддерживаются обычные видеоролики TikTok. Фотоальбомы, профили и трансляции не поддерживаются.`,
   FORMAT_UNAVAILABLE: `<tg-emoji emoji-id=${emojis.cross_in_circle}>👍</tg-emoji> Нет подходящего формата MP4/H.264 с аудио. Попробуй другой ролик или аудио.`,
-  DOWNLOAD_FAILED: `<tg-emoji emoji-id=${emojis.warning}>👍</tg-emoji> YouTube не отдал медиа. Попробуй позже.`,
+  DOWNLOAD_FAILED: `<tg-emoji emoji-id=${emojis.warning}>👍</tg-emoji> Платформа не отдала медиа. Попробуй позже.`,
   PROCESS_FAILED: `<tg-emoji emoji-id=${emojis.error}>👍</tg-emoji> Не удалось обработать медиа. Попробуй другой ролик.`,
   PROCESS_MISSING: `<tg-emoji emoji-id=${emojis.no_light}>👍</tg-emoji> На сервере не настроен загрузчик или FFmpeg.`,
   TIMEOUT: `<tg-emoji emoji-id=${emojis.cross}>👍</tg-emoji> Превышено время обработки. Попробуй более короткий ролик.`,

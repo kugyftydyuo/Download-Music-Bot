@@ -11,6 +11,7 @@ import { SubscriptionService, verifyBotChannels } from './services/subscriptions
 import { MediaConverter } from './services/media-converter.js';
 import { DownloadJobService } from './services/download-job.js';
 import { PlatformRegistry } from './platforms/registry.js';
+import { TiktokProvider } from './platforms/tiktok/provider.js';
 import { YoutubeProvider } from './platforms/youtube/provider.js';
 import { registerHandlers } from './bot/handlers.js';
 
@@ -84,7 +85,7 @@ async function main() {
   const jobs = new DownloadJobService({ config, subscriptions, storage, converter, telegram, logger });
 
   // Composition root: подключение новой платформы не меняет обработчики и очередь.
-  const registry = new PlatformRegistry([new YoutubeProvider(config)]);
+  const registry = new PlatformRegistry([new YoutubeProvider(config), new TiktokProvider(config)]);
 
   handlers = registerHandlers({ bot, telegram, config, channels, subscriptions, queue, registry, jobs, logger });
 

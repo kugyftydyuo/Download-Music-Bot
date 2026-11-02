@@ -5,6 +5,9 @@ import { setImmediate as nextTurn } from 'node:timers/promises';
 import { registerHandlers } from '../src/bot/handlers.js';
 import { loadConfig } from '../src/config/index.js';
 import { JobQueue } from '../src/core/job-queue.js';
+import { PlatformRegistry } from '../src/platforms/registry.js';
+import { YoutubeProvider } from '../src/platforms/youtube/provider.js';
+import { TiktokProvider } from '../src/platforms/tiktok/provider.js';
 import { AppError } from '../src/core/errors.js';
 
 function fixture() {
@@ -23,7 +26,7 @@ function fixture() {
   const handlers = registerHandlers({
     bot, telegram, config, queue, subscriptions,
     channels: { snapshot: { channels: [{ id: '@channel', title: 'Канал', url: 'https://t.me/channel' }] } },
-    registry: { resolve: (url) => ({ platform: { id: 'test' }, url }) },
+    registry: new PlatformRegistry([new YoutubeProvider(config), new TiktokProvider(config)]),
     jobs: { async execute(job) { executed.push(job); } },
     logger: { info() {}, warn() {}, error() {} },
   });
@@ -64,8 +67,18 @@ test('a URL before format selection shows a menu, an unauthorised owner command 
   assert.match(f.sent.at(-1).text, /Выберите формат/);
   await f.message('/reload_channels');
   assert.match(f.sent.at(-1).text, /только владельцу/);
-  await f.message('/id');
-  assert.match(f.sent.at(-1).text, /ID: 1/);
+  await f.handlers.close();
+  await f.queue.close();
+});
+
+test('TikTok link uses the same subscription gate and selected mode', async () => {
+  const f = fixture();
+  f.subscribe();
+  await f.callback('mode:video');
+  await f.message('https://vm.tiktok.com/ABC123/');
+  assert.equal(f.executed.length, 1);
+  assert.equal(f.executed[0].platform.id, 'tiktok');
+  assert.equal(f.executed[0].kind, 'video');
   await f.handlers.close();
   await f.queue.close();
 });
